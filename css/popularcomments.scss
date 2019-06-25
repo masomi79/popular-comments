@@ -1,0 +1,123 @@
+$pc: 1024px; // PC
+$tab: 680px; // タブレット
+$sp: 480px;  // スマホ
+
+@mixin pc {
+  @media (max-width: ($pc)) {
+    @content;
+  }
+}
+@mixin tab {
+  @media (max-width: ($tab)) {
+    @content;
+  }
+}
+@mixin sp {
+  @media (max-width: ($sp)) {
+    @content;
+  }
+}
+
+
+
+#comments{
+  .comment-body{
+    box-shadow: 0 0.4rem 0.3rem 0 #e0e0e0;
+    background-color: #fff;
+    position: relative;
+    margin-bottom: 0;
+    @include tab {
+      margin-left: 0;
+    };
+  }
+  .comment-content{
+    padding: 1em;
+    p{
+      font-size: 2rem;
+      line-height: 3rem;
+      margin: 0;
+    }
+  }
+  .closed > .comment-body > .comment-content,
+  .closed > .comment-body > .reply{
+    display: none;
+  }
+  .opened > .comment-body > .comment-content,
+  .opened > .comment-body > .reply{
+    display: block;
+  }
+  .comment-meta{
+    margin: 0;
+    padding: 1em;
+  }
+  .closed{
+    .comment-author{
+      &::before{
+        display: inline-block;
+        position: relative;
+        content: "▶";
+      }
+    }
+  }
+  .opened{
+    .comment-author{
+      &::before{
+        display: inline-block;
+        position: relative;
+        content: "▼";
+      }
+    }
+  }
+  .comment-author,
+  .comment-metadata{
+    display: inline-block;
+    margin: 0;
+  }
+  .depth-2,
+  .depth-3,
+  .depth-4,
+  .depth-5,
+  .depth-6,
+  .depth-7,
+  .depth-8,
+  .depth-9{
+    margin-left: 1em;
+    
+  }
+  .popularcomments-area{
+    text-align: right;
+    .suki,
+    .kirai,
+    .henshin{
+      border-radius: 0.8rem;
+      background-color: #fafafa;
+      border: solid .1rem #eee;
+      color: #e0e0e0;
+      display: inline-block;
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 2rem;
+      margin-left: 1rem;
+      padding: 1.2rem 2.2rem;
+      text-decoration: none;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+      -webkit-transition: none;
+      transition: none;
+      transition: none;
+      transition: none;
+    }
+  }
+  .logged-in-as{
+    display: none;
+    margin: 0;
+  }
+  .total-votes-up{
+    color: #fbc02d;
+    margin-left: .5em;
+  }
+  .comment-respond{
+    margin-top: 1em;
+    
+  }
+}

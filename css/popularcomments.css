@@ -1,0 +1,77 @@
+@charset "UTF-8";
+#comments .comment-body {
+  box-shadow: 0 0.4rem 0.3rem 0 #e0e0e0;
+  background-color: #fff;
+  position: relative;
+  margin-bottom: 0; }
+  @media (max-width: 680px) {
+    #comments .comment-body {
+      margin-left: 0; } }
+#comments .comment-content {
+  padding: 1em; }
+  #comments .comment-content p {
+    font-size: 2rem;
+    line-height: 3rem;
+    margin: 0; }
+#comments .closed > .comment-body > .comment-content,
+#comments .closed > .comment-body > .reply {
+  display: none; }
+#comments .opened > .comment-body > .comment-content,
+#comments .opened > .comment-body > .reply {
+  display: block; }
+#comments .comment-meta {
+  margin: 0;
+  padding: 1em; }
+#comments .closed .comment-author::before {
+  display: inline-block;
+  position: relative;
+  content: "▶"; }
+#comments .opened .comment-author::before {
+  display: inline-block;
+  position: relative;
+  content: "▼"; }
+#comments .comment-author,
+#comments .comment-metadata {
+  display: inline-block;
+  margin: 0; }
+#comments .depth-2,
+#comments .depth-3,
+#comments .depth-4,
+#comments .depth-5,
+#comments .depth-6,
+#comments .depth-7,
+#comments .depth-8,
+#comments .depth-9 {
+  margin-left: 1em; }
+#comments .popularcomments-area {
+  text-align: right; }
+  #comments .popularcomments-area .suki,
+  #comments .popularcomments-area .kirai,
+  #comments .popularcomments-area .henshin {
+    border-radius: 0.8rem;
+    background-color: #fafafa;
+    border: solid .1rem #eee;
+    color: #e0e0e0;
+    display: inline-block;
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 2rem;
+    margin-left: 1rem;
+    padding: 1.2rem 2.2rem;
+    text-decoration: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -webkit-transition: none;
+    transition: none;
+    transition: none;
+    transition: none; }
+#comments .logged-in-as {
+  display: none;
+  margin: 0; }
+#comments .total-votes-up {
+  color: #fbc02d;
+  margin-left: .5em; }
+#comments .comment-respond {
+  margin-top: 1em; }
+
+/*# sourceMappingURL=popularcomments.css.map */
