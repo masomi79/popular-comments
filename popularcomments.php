@@ -2,33 +2,12 @@
 /*
 Plugin Name: Popular Comments
 Plugin URI: 
-Description: comments vote comment_metaを使用して投票できるようにします。
-Author: Massumi Fukuda
-Version: 3.59.4
-Author URI: massumifukuda.work
+Description: はじめての三国志でコメントへの投票、集計と表示、ソートができるようにします。
+Author: 
+Version: 7.5.8
+Author URI: https://hajimete-sangokushi.com
 */
 
-
-// アクションフック一覧
-/*
-add_action('comment_form_logged_in_after',function($piyo, $fuga){
-    echo $piyo + $fuga;
-},10,2);
-add_action('comment_form_after_fields',function($piyo, $fuga){
-    echo $piyo + $fuga;
-},10,2);
-add_action('preprocess_comment',function($piyo, $fuga){
-    echo $piyo + $fuga;
-},10,2);
-add_action('wp_insert_comment',function($piyo, $fuga){
-    echo $piyo + $fuga;
-},10,2);
-add_action('edit_comment',function($piyo, $fuga){
-    echo $piyo + $fuga;
-},10,2);*/
-add_filter('comment_meta',function($piyo, $fuga){
-    echo "umco";
-});
 
 
 // プラグインフォルダー
@@ -50,48 +29,81 @@ function voteme_enqueuescripts() {
 add_action('wp_enqueue_scripts', voteme_enqueuescripts);
 
 
+//コメント投稿時にカスタムフィールド _commentsvote を作成
+function register_votecount($commentid) {
+    update_comment_meta($commentid, '_commentsvote', 1);
+}
+add_filter( 'wp_insert_comment', 'register_votecount' );
+
+// fill custom field _commentsvote
+function add_metata(){
+    $postid = get_the_ID();
+    $commentsargs = array(
+        'post_id' => $postid);
+    $comments = get_comments($commentsargs);
+    foreach($comments as $comm){
+        $comment_ID = $comm->comment_ID;
+        if(!($commentsvote = get_comment_meta($comment_ID, '_commentsvote', true))){
+            register_votecount($comment_ID);
+        }else{
+
+        }
+    }
+}
+add_action( 'wp_head', add_metata);
+
 // 投票数の表示
 function commentsvote_showlink() {
     $link = "";
     $nonce = wp_create_nonce("commentsvote_nonce");
     $current_CommentID =  get_comment_ID();
+    // カスタムフィールド  '_commentsvote' を取得
     $votes = get_comment_meta($current_CommentID, '_commentsvote', true) != '' ? get_comment_meta($current_CommentID, '_commentsvote', true) : '0';
+    
     $arguments = $current_CommentID.",'".$nonce."'";
+
+    // 投票ボタンを生成
     $link = '<span class="total-votes">' . $votes.'</span><a onclick="commentsvote_add('.$arguments.');" class="suki">'.'+'.'</a>';
     $link .= ' <a onclick="commentsvotedislike_add('.$arguments.');" class="kirai">'.'-'.'</a>';
+    $page_id     = get_queried_object_id();
+    $current_url = $_SERVER["REQUEST_URI"];
+
     $completelink = '<div id="commentsvote-'.$current_CommentID.'" class="popularcomments-area">';
     $completelink .= '<span>'.$link.'</span>';
-//    $completelink .= '<span><span class="reply-button"><a class="henshin">返</a></span></span>';
-    $completelink .= '<a rel="nofollow" class="comment-reply-link" href="/wp/2011/07/uploader/?replytocom=5#respond" data-commentid="5" data-postid="81" data-belowelement="div-comment-5" data-respondelement="respond" aria-label="Inuha に返信"><svg class="icon icon-mail-reply" aria-hidden="true" role="img"> <use href="#icon-mail-reply" xlink:href="#icon-mail-reply"></use> </svg>返</a>';
+    $completelink .= '<a rel="nofollow" class="comment-reply-link henshin" href="' . $current_url . '?replytocom=' . $current_CommentID . '#respond" data-commentid="' . $current_CommentID . '" data-postid="' . $page_id . '" data-belowelement="div-comment-' . $current_CommentID . '" data-respondelement="respond" aria-label="Inuha に返信">返</a>';
     $completelink .= '</div>';
- /*   $completelink .= '
-        <div class="comment-respond">
-        <form action="https://massumifukuda.work/wp/wp-comments-post.php" method="post" id="commentform" class="comment-form" novalidate="">
-        <textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" required="required">あなたのコメントを入れてね</textarea>
-        <p class="form-submit"><input name="submit" type="submit" id="submit" class="submit" value="コメントを送信"> <input type="hidden" name="comment_post_ID" value="' . $current_CommentID . '" id="comment_post_ID"><input type="hidden" name="comment_parent" id="comment_parent" value="0"></p>
-        </form>
-        </div>';
-*/
     $completelink .= '';
     return $completelink;
 }
-
-
 function commentsvote_comment_text($content) {
+//    $current_PostID = $post->ID;
     return $content.commentsvote_showlink();
 }
-
-function say_umco(){
-    $umco = "<h1>umco</h1>";
-    return $umco;
-}
-function hey_say_umco($content) {
-    return $content.say_umco();
-}
-add_filter('wp_list_comments', hey_say_umco);
-add_filter('comment_meta', commentsvote_comment_text);
-// add_filter('comment_form_default_fields', commentsvote_comment_text);
 add_filter('comment_text', commentsvote_comment_text);
+
+
+//コメント表示のソート
+
+function edit_comment_query( $comment_args ) {
+    $sort_key = $_GET['sortKey'];
+    if($sort_key < 1){
+        $comment_args['orderby'] = 'comment_date_gmt';
+        $comment_args['order'] = 'ASC';
+    }elseif($sort_key > 0){
+//      $comment_args['orderby'] = 'comment_author';
+        $comment_args['orderby'] = 'meta_value_num';
+        $comment_args['meta_key'] = '_commentsvote';
+        $comment_args['order'] = 'ASC';
+    }else{
+        $comment_args['orderby'] = 'comment_date_gmt';
+        $comment_args['order'] = 'ASC';
+    }
+    return $comment_args;
+}
+add_filter( 'comments_template_query_args', 'edit_comment_query' );
+
+
+
 
 
 function commentsvote_ajaxhandler() {
@@ -140,12 +152,29 @@ add_action( 'wp_ajax_nopriv_commentsvotedislike_ajaxhandler', 'commentsvotedisli
 add_action( 'wp_ajax_commentsvotedislike_ajaxhandler', 'commentsvotedislike_ajaxhandler' );
 
 
+
+// edit Comment form
 function my_comment_form($form){
+    // Hide title
     $form['title_reply'] = '';
+    // Hide URL form
     $form['fields']['url'] = '';
+    // Hide title
     $form['comment_notes_before'] = '';
     $form['comment_field'] = '<p class="comment-form-comment"><textarea id="comment" name="comment" cols="45" rows="8" aria-required="true" placeholder="あなたのコメントを入れてね"></textarea></p>';
     return $form;
 }
 add_filter('comment_form_defaults', 'my_comment_form');
+
+
+//コメントがあればコメント数を表示する
+function show_comments_number(){
+    if ( $comments_number = get_comments_number() ) {     
+        $title_meta_comments ='<span class="comments-number-wrap"><a href="#comments" class="comments-number"><span class="comments-number-number">' . $comments_number . "</span>件のコメントがあります</a></span>";
+        add_meta_box($title_meta_comments);
+    }
+}
+add_action('postmeta', 'show_comments_number');
+
+
 ?>
