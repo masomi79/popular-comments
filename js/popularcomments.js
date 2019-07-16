@@ -13,9 +13,12 @@ $.ajax({
  });
  */
 
+
 function commentsvote_add(comment_id, nonce) {
 
-    $.ajax({
+    console.log(comment_id);
+
+    jQuery.ajax({
         type: 'POST',
         url: votecommentajax.ajaxurl,
         data: {
@@ -26,10 +29,15 @@ function commentsvote_add(comment_id, nonce) {
         },
         success: function(data, textStatus, XMLHttpRequest) {
             var linkofcomment = '#commentsvote-' + comment_id;
-            jQuery(linkofcomment).html('');
-            jQuery(linkofcomment).append(data);
+            var findClass = '.total-votes-up-' + comment_id;
+            jQuery(findClass).html(data);
+
+            console.log('ok');
+        //    jQuery(linkofcomment).html('');
+        //    jQuery(linkofcomment).append(data);
         },
         error: function(MLHttpRequest, textStatus, errorThrown) {
+            console.log('no');
             alert(errorThrown);
         }
     });
@@ -37,7 +45,7 @@ function commentsvote_add(comment_id, nonce) {
 
 function commentsvotedislike_add(comment_id, nonce) {
 
-    $.ajax({
+    jQuery.ajax({
         type: 'POST',
         url: votecommentajax.ajaxurl,
         data: {
@@ -48,44 +56,112 @@ function commentsvotedislike_add(comment_id, nonce) {
         },
         success: function(data, textStatus, XMLHttpRequest) {
             var linkofcomment = '#commentsvote-' + comment_id;
-            jQuery(linkofcomment).html('');
-            jQuery(linkofcomment).append(data);
+            var findClass = '.total-votes-up-' + comment_id;
+            jQuery(findClass).html(data);
+            console.log(comment_id);
+        //    jQuery(linkofcomment).html('');
+        //    jQuery(linkofcomment).append(data);
         },
         error: function(MLHttpRequest, textStatus, errorThrown) {
             alert(errorThrown);
         }
     });
 }
-$(document).ready(function(){
+jQuery(document).ready(function(){
 
-    $('.comment').each(function(){
-        $(this).addClass('closed');
-        var replyContents = $(this).find('reply');
-        $(this).find('.popularcomments-area').after(replyContents);
+    /**
+     *  GETパラメータを配列にして返す
+     *  
+     *  @return     パラメータのObject
+     *
+     */
+    var getUrlVars = function(){
+        var vars = {}; 
+        var param = location.search.substring(1).split('&');
+        for(var i = 0; i < param.length; i++) {
+            var keySearch = param[i].search(/=/);
+            var key = '';
+            if(keySearch != -1) key = param[i].slice(0, keySearch);
+            var val = param[i].slice(param[i].indexOf('=', 0) + 1);
+            if(key != '') vars[key] = decodeURI(val);
+        } 
+        return vars; 
+    }
+
+    jQuery('.comment').each(function(){
+        jQuery(this).addClass('opened');
+        var replyContents = jQuery(this).find('reply');
+        jQuery(this).find('.popularcomments-area').after(replyContents);
     })
 
-    $('.comment-body').each(function(){
-        var totalVotes = $(this).find('.total-votes').html();
-        var addHtml = '<span class="total-votes-up">' + totalVotes + '</span>';
-        $(this).find('.comment-metadata').after(addHtml);
-
-        var val1 = $('.total-votes-up').html();
-        console.log(val1);
+    jQuery('.comment-body').each(function(){
+        var totalVotes = jQuery(this).find('.total-votes').html();
+        var commentBodyID = jQuery(this).attr('id');
+        var commentID = commentBodyID.replace('div-comment-','');
+        var addHtml = '<span class="total-votes-up total-votes-up-' + commentID + '">' + totalVotes + '</span>';
+        jQuery(this).find('.comment-metadata').after(addHtml);
+        var val1 = jQuery('.total-votes-up').html();
+        if(totalVotes > 19){
+            jQuery(this).find('.comment-content').find('p').addClass('over20');
+        }
+        if(totalVotes < 0){
+            jQuery(this).find('.comment-content').find('p').addClass('under0');
+        }
     })
     
-    $('.comment-author').click(function(){
+    jQuery('.comment-author').click(function(){
 
-        var classValue = $(this).parent().parent().parent('.comment').attr('class');
+        var classValue = jQuery(this).parent().parent().parent('.comment').attr('class');
 
         if(classValue.match('closed')){
-            $(this).parent().parent().parent('.comment').addClass('opened');
-            $(this).parent().parent().parent('.comment').removeClass('closed');
+            jQuery(this).parent().parent().parent('.comment').addClass('opened');
+            jQuery(this).parent().parent().parent('.comment').removeClass('closed');
         }else if(classValue.match('opened')){
-            $(this).parent().parent().parent('.comment').addClass('closed');
-            $(this).parent().parent().parent('.comment').removeClass('opened');
+            jQuery(this).parent().parent().parent('.comment').addClass('closed');
+            jQuery(this).parent().parent().parent('.comment').removeClass('opened');
         }
 
     });
+
+
+    var dir1 = getUrlVars();
+    var SKS = dir1['sortKey'];
+
+    var sortForm ='<div class="sort-button-wrap"><div class="sort-botton"><form class="comments-sort" action="" method="post"><select name="sort-comments" class="sort-comments">';
+
+    if(SKS == 0){
+        var sortForm = sortForm + '<option value="0" selected>日付順</option><option value="1">人気順</option>';
+    }else if(SKS == 1){
+        var sortForm = sortForm + '<option value="0">日付順</option><option value="1" selected>人気順</option>';
+    }else {
+        var sortForm = sortForm + '<option value="0" selected>日付順</option><option value="1">人気順</option>';
+    }
+    sortForm = sortForm + '</select></form></div><p class="comment-header__note"> なるべくマイナスは悪質なコメントに対してのみ押してください</p></div>';
+    jQuery('#comment_header').after(sortForm);
+
+
+    // ソートを選択したらページをリロード
+    jQuery('.sort-comments').change(function() {
+        var text = jQuery('option:selected').text();  
+        var val = jQuery('.sort-comments').val();
+        var dir0 = location.href;
+        dir0 = dir0.replace('#comments', '');
+        var dir = dir0.split("?");
+
+        var relocateUrl = dir[0] + '?sortKey=' + val + '#comments';
+        location.href = relocateUrl;
+    });
+
+    jQuery('.suki').click(function(){
+        jQuery(this).removeAttr('onclick').addClass('pushed').css('background','#389867');
+    //    jQuery(this).next('.kirai').removeAttr('onclick').addClass('pushed').css('background','#389867');
+    });
+
+    jQuery('.kirai').click(function(){
+        jQuery(this).removeAttr('onclick').addClass('pushed').css('background','#389867');
+    //    jQuery(this).prev('.suki').removeAttr('onclick').addClass('pushed').css('background','#389867');
+    });
+
 });
 
 
